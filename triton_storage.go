@@ -11,6 +11,8 @@ import (
 )
 
 // TritonStorage triton存储实现
+// 尚未接入真实服务端，仅为占位实现，不可用于分布式锁。
+// 真正接入时需借助服务端原子语义实现 CAS。
 type TritonStorage struct {
 	mu sync.RWMutex
 }
@@ -25,23 +27,26 @@ const StorageName = "triton-storage"
 
 func (x *TritonStorage) GetName() string { return StorageName }
 func (x *TritonStorage) Capabilities() []storage.StorageCapability {
-	return []storage.StorageCapability{storage.CapabilityCAS, storage.CapabilityReliableTime}
+	return []storage.StorageCapability{storage.CapabilityReliableTime, storage.CapabilityWatch}
+}
+func (x *TritonStorage) Watch(ctx context.Context, lockId string) (<-chan *storage.LockInformation, error) {
+	return storage.NewPollingLockWatcher(x, 500*time.Millisecond).Watch(ctx, lockId)
 }
 func (x *TritonStorage) Init(ctx context.Context) error { return nil }
 func (x *TritonStorage) CreateWithVersion(ctx context.Context, lockId string, version storage.Version, lockInformation *storage.LockInformation) error {
 	x.mu.Lock()
 	defer x.mu.Unlock()
-	return nil
+	return storage_lock.ErrStorageCapabilityMissing
 }
 func (x *TritonStorage) UpdateWithVersion(ctx context.Context, lockId string, expectedVersion, newVersion storage.Version, lockInformation *storage.LockInformation) error {
 	x.mu.Lock()
 	defer x.mu.Unlock()
-	return nil
+	return storage_lock.ErrStorageCapabilityMissing
 }
 func (x *TritonStorage) DeleteWithVersion(ctx context.Context, lockId string, expectedVersion storage.Version, lockInformation *storage.LockInformation) error {
 	x.mu.Lock()
 	defer x.mu.Unlock()
-	return nil
+	return storage_lock.ErrStorageCapabilityMissing
 }
 func (x *TritonStorage) Get(ctx context.Context, lockId string) (string, error) {
 	x.mu.RLock()
