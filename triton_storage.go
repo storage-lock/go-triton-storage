@@ -27,7 +27,10 @@ const StorageName = "triton-storage"
 
 func (x *TritonStorage) GetName() string { return StorageName }
 func (x *TritonStorage) Capabilities() []storage.StorageCapability {
-	return []storage.StorageCapability{storage.CapabilityReliableTime, storage.CapabilityWatch}
+	// Capabilities 如实声明：这个实现是占位壳，GetTime 返回本机时间而非可信服务端时钟，
+	// 条件写方法也返回 ErrStorageCapabilityMissing。因此不声明 CapabilityReliableTime。
+	// Watch 仍保留：它只是轮询，不构成建锁前提。
+	return []storage.StorageCapability{storage.CapabilityWatch}
 }
 func (x *TritonStorage) Watch(ctx context.Context, lockId string) (<-chan *storage.LockInformation, error) {
 	return storage.NewPollingLockWatcher(x, 500*time.Millisecond).Watch(ctx, lockId)
