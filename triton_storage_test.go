@@ -22,9 +22,9 @@ func TestTritonStorageStoragePlaceholder(t *testing.T) {
 	// GetName 非空
 	assert.Equal(t, StorageName, s.GetName())
 
-	// Capabilities：ReliableTime + Watch，不声明 CAS
+	// Capabilities：实现如实声明只有 Watch（本机时钟不算可信时间源）
 	caps := s.Capabilities()
-	assert.Contains(t, caps, storage.CapabilityReliableTime)
+	assert.NotContains(t, caps, storage.CapabilityReliableTime)
 	assert.NotContains(t, caps, storage.CapabilityCAS)
 
 	// Init / Close 无错
